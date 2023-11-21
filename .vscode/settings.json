@@ -1,0 +1,12 @@
+{
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "prettier.configPath": "./.prettierrc",
+    "cSpell.words": [
+      "Levelkey",
+      "SAST",
+      "SOOS"
+    ],
+    "sarif-viewer.connectToGithubCodeScanning": "off",
+  }
