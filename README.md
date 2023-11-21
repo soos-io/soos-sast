@@ -15,10 +15,12 @@ If you maintain an Open Source project, sign up for the Free as in Beer [SOOS Co
 
 ### Globally
 run `npm i -g @soos-io/soos-sast@latest`
+
 Then Run `soos-sast` from any terminal and add the parameters you want.
 
 ### Locally
 run `npm install --prefix ./soos @soos-io/soos-sast`
+
 Then run from the same terminal `node ./soos/node_modules/@soos-io/soos-sast/bin/index.js`
 
 ## Parameters
