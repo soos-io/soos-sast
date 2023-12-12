@@ -12,11 +12,12 @@ import { obfuscateProperties, ensureValue } from "@soos-io/api-client/dist/utili
 import * as FileSystem from "fs";
 import * as Path from "path";
 import FormData from "form-data";
+import * as Glob from "glob";
 import { exit } from "process";
-import { SOOS_SAST_CONSTANTS } from "./constants";
 import { version } from "../package.json";
 import AnalysisService from "@soos-io/api-client/dist/services/AnalysisService";
 import AnalysisArgumentParser from "@soos-io/api-client/dist/services/AnalysisArgumentParser";
+import { SOOS_SAST_CONSTANTS } from "./constants";
 
 interface SOOSSASTAnalysisArgs {
   apiKey: string;
@@ -40,6 +41,11 @@ interface SOOSSASTAnalysisArgs {
   verbose: boolean;
 }
 
+interface ISastFile {
+  name: string;
+  path: string;
+}
+
 class SOOSSASTAnalysis {
   constructor(private args: SOOSSASTAnalysisArgs) {}
 
@@ -49,6 +55,7 @@ class SOOSSASTAnalysis {
     // TODO fix integration name/type - pass them in here
     analysisArgumentParser.addBaseScanArguments();
 
+
     // TODO wrap this method in AnalysisArgumentParser
     soosLogger.info("Parsing arguments");
     return analysisArgumentParser.argumentParser.parse_args();
@@ -57,8 +64,8 @@ class SOOSSASTAnalysis {
   async runAnalysis(): Promise<void> {
     const scanType = ScanType.SAST;
 
-    // TODO file all files matching *.sarif.json from the workingDirectory
-    const filePath = await this.findSASTFilePath();
+    
+    const sastFiles = await this.findSASTFiles();
     const soosAnalysisService = AnalysisService.create(this.args.apiKey, this.args.apiURL);
 
     let projectHash: string | undefined;
@@ -101,7 +108,7 @@ class SOOSSASTAnalysis {
 
       soosLogger.info("Uploading SAST Files");
 
-      const formData = await this.getSastAsFormData(filePath);
+      const formData = await this.getSastFilesAsFormData(sastFiles);
 
       await soosAnalysisService.analysisApiClient.uploadScanToolResult({
         clientId: this.args.clientId,
@@ -132,40 +139,51 @@ class SOOSSASTAnalysis {
     }
   }
 
-  async getSastAsFormData(filePath: string): Promise<FormData> {
-    try {
-      const fileReadStream = FileSystem.createReadStream(filePath, {
-        encoding: SOOS_CONSTANTS.FileUploads.Encoding,
-      });
+  async getSastFilesAsFormData(sastFiles: ISastFile[]): Promise<FormData> {
+    const formData = sastFiles.reduce((formDataAcc: FormData, sastFile, index) => {
+      const workingDirectory = process.env.SYSTEM_DEFAULTWORKINGDIRECTORY ?? "";
+      const fileParts = sastFile.path.replace(workingDirectory, "").split(Path.sep);
+      const parentFolder =
+      fileParts.length >= 2
+          ? fileParts.slice(0, fileParts.length - 1).join(Path.sep)
+          : "";
+          const suffix = index > 0 ? index : "";
+          const fileReadStream = FileSystem.createReadStream(sastFile.path, {
+            encoding: SOOS_CONSTANTS.FileUploads.Encoding,
+          });
+          formDataAcc.append(`file${suffix}`, fileReadStream);
+          formDataAcc.append(`parentFolder${suffix}`, parentFolder);
+    
+          return formDataAcc;
+    }, new FormData());
 
-      const formData = new FormData();
-      formData.append("file", fileReadStream);
-      return formData;
-    } catch (error) {
-      soosLogger.error(`Error on getSastAsFormData: ${error}`);
-      throw error;
-    }
+    return formData;
   }
 
-  async findSASTFilePath(): Promise<string> {
-    const sastPathStat = await FileSystem.statSync(this.args.sourceCodePath);
+  async findSASTFiles(): Promise<Array<ISastFile>> {
+      soosLogger.info("Searching for SAST files");
+      const pattern = SOOS_SAST_CONSTANTS.FilePattern;
+      const files = Glob.sync(pattern, {
+        nocase: true,
+      });
 
-    if (sastPathStat.isDirectory()) {
-      const files = await FileSystem.promises.readdir(this.args.sourceCodePath);
-      const sastFile = files.find((file) => SOOS_SAST_CONSTANTS.FilePatternRegex.test(file));
+      const absolutePathFiles = files.map((x) => Path.resolve(x));
 
-      if (!sastFile) {
-        throw new Error("No SAST file found in the directory.");
+      const matchingFilesMessage = `${absolutePathFiles.length} files found matching pattern '${pattern}'.`
+
+      if (absolutePathFiles.length > 0) {
+        soosLogger.info(matchingFilesMessage);
+      }else{
+        throw new Error("No SAST files found.");
       }
+    
 
-      return Path.join(this.args.sourceCodePath, sastFile);
-    }
-
-    if (!SOOS_SAST_CONSTANTS.FilePatternRegex.test(this.args.sourceCodePath)) {
-      throw new Error("The file does not match the required SAST pattern.");
-    }
-
-    return this.args.sourceCodePath;
+    return absolutePathFiles.map((f) => {
+      return {
+        name: Path.basename(f),
+        path: f,
+      };
+    });
   }
 
   static async createAndRun(): Promise<void> {
