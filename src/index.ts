@@ -150,6 +150,7 @@ class SOOSSASTAnalysis {
     }
   }
 
+  // TODO move to api-client analysisService as a helper method
   async getSastFilesAsFormData(sastFiles: ISastFile[]): Promise<FormData> {
     const formData = sastFiles.reduce((formDataAcc: FormData, sastFile, index) => {
       const workingDirectory = this.args.sourceCodePath;
@@ -169,6 +170,7 @@ class SOOSSASTAnalysis {
     return formData;
   }
 
+  // TODO move to api-client analysisService as a helper method - generic file
   async findSASTFiles(path: string): Promise<Array<ISastFile>> {
     soosLogger.info(`Searching for SAST files from ${path}...`);
     const pattern = `${path}/${SOOS_SAST_CONSTANTS.FilePattern}`;
