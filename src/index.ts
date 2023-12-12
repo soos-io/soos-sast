@@ -20,9 +20,9 @@ import * as FileSystem from "fs";
 import * as Path from "path";
 import FormData from "form-data";
 import { exit } from "process";
-import SOOSAnalysisApiClient from "@soos-io/api-client/dist/api/SOOSAnalysisApiClient";
 import { SOOS_SAST_CONSTANTS } from "./constants";
 import { version } from "../package.json";
+import AnalysisService from "@soos-io/api-client/dist/services/AnalysisService";
 
 interface SOOSSASTAnalysisArgs {
   apiKey: string;
@@ -34,13 +34,15 @@ interface SOOSSASTAnalysisArgs {
   buildVersion: string;
   clientId: string;
   commitHash: string;
+  directoriesToExclude: Array<string>;
+  filesToExclude: Array<string>;
   integrationName: IntegrationName;
   integrationType: IntegrationType;
   logLevel: LogLevel;
   operatingEnvironment: string;
   projectName: string;
   scriptVersion: string;
-  sastPath: string;
+  sourceCodePath: string;
   verbose: boolean;
 }
 
@@ -101,6 +103,22 @@ class SOOSSASTAnalysis {
       required: false,
     });
 
+    parser.add_argument("--directoriesToExclude", {
+      help: "Listing of directories or patterns to exclude from the search for manifest files. eg: **bin/start/**, **/start/**",
+      type: (value: string) => {
+        return value.split(",").map((pattern) => pattern.trim()); // TODO use remove duplicate in params parser service once it is there from SCA
+      },
+      required: false,
+    });
+
+    parser.add_argument("--filesToExclude", {
+      help: "Listing of files or patterns patterns to exclude from the search for manifest files. eg: **/req**.txt/, **/requirements.txt",
+      type: (value: string) => {
+        return value.split(",").map((pattern) => pattern.trim());
+      },
+      required: false,
+    });
+
     parser.add_argument("--integrationName", {
       help: "Integration Name - Intended for internal use only.",
       required: false,
@@ -151,8 +169,10 @@ class SOOSSASTAnalysis {
       required: false,
     });
 
-    parser.add_argument("sastPath", {
-      help: "The SAST File to scan (*.sarif.json), it could be the location of the file or the file itself. When location is specified only the first file found will be scanned.",
+    parser.add_argument("--sourceCodePath", {
+      help: "Root path to begin recursive search for SARIF files.",
+      default: process.cwd(),
+      required: false,
     });
 
     soosLogger.info("Parsing arguments");
@@ -160,21 +180,25 @@ class SOOSSASTAnalysis {
   }
 
   async runAnalysis(): Promise<void> {
+    const scanType = ScanType.SAST;
+
+    const filePath = await this.findSASTFilePath();
+    const soosAnalysisService = AnalysisService.create(this.args.apiKey, this.args.apiURL);
+
     let projectHash: string | undefined;
     let branchHash: string | undefined;
     let analysisId: string | undefined;
-    const filePath = await this.findSASTFilePath();
-    const soosAnalysisApiClient = new SOOSAnalysisApiClient(this.args.apiKey, this.args.apiURL);
+
     try {
       soosLogger.info("Starting SOOS SAST Analysis");
       soosLogger.info(`Creating scan for project '${this.args.projectName}'...`);
       soosLogger.info(`Branch Name: ${this.args.branchName}`);
 
-      const result = await soosAnalysisApiClient.createScan({
+      const result = await soosAnalysisService.setupScan({
         clientId: this.args.clientId,
         projectName: this.args.projectName,
         commitHash: this.args.commitHash,
-        branch: this.args.branchName,
+        branchName: this.args.branchName,
         buildVersion: this.args.buildVersion,
         buildUri: this.args.buildUri,
         branchUri: this.args.branchUri,
@@ -182,11 +206,11 @@ class SOOSSASTAnalysis {
         operatingEnvironment: this.args.operatingEnvironment,
         integrationName: this.args.integrationName,
         appVersion: this.args.appVersion,
-        scriptVersion: null,
-        contributingDeveloperAudit: undefined,
-        scanType: ScanType.SAST,
-        toolName: null,
-        toolVersion: null,
+        scanType,
+        scriptVersion: version,
+        contributingDeveloperAudit: [],
+        toolName: undefined,
+        toolVersion: undefined,
       });
 
       projectHash = result.projectHash;
@@ -199,33 +223,31 @@ class SOOSSASTAnalysis {
       soosLogger.info("Scan created successfully.");
       soosLogger.logLineSeparator();
 
-      soosLogger.info("Uploading SAST File");
+      soosLogger.info("Uploading SAST Files");
 
       const formData = await this.getSastAsFormData(filePath);
 
-      await soosAnalysisApiClient.uploadScanToolResult({
+      await soosAnalysisService.analysisApiClient.uploadScanToolResult({
         clientId: this.args.clientId,
         projectHash,
         branchHash,
-        scanType: ScanType.SAST,
+        scanType,
         scanId: analysisId,
         resultFile: formData,
       });
 
-      soosLogger.info(`Scan result uploaded successfully`);
-
       soosLogger.logLineSeparator();
       soosLogger.info(
-        `Analysis scan started successfully, to see the results visit: ${result.scanUrl}`,
+        `Scan results uploaded successfully. To see the results visit: ${result.scanUrl}`,
       );
     } catch (error) {
       if (projectHash && branchHash && analysisId)
-        await soosAnalysisApiClient.updateScanStatus({
+        await soosAnalysisService.updateScanStatus({
+          analysisId,
           clientId: this.args.clientId,
           projectHash,
           branchHash,
-          scanType: ScanType.SAST,
-          scanId: analysisId,
+          scanType,
           status: ScanStatus.Error,
           message: `Error while performing scan.`,
         });
@@ -250,24 +272,24 @@ class SOOSSASTAnalysis {
   }
 
   async findSASTFilePath(): Promise<string> {
-    const sastPathStat = await FileSystem.statSync(this.args.sastPath);
+    const sastPathStat = await FileSystem.statSync(this.args.sourceCodePath);
 
     if (sastPathStat.isDirectory()) {
-      const files = await FileSystem.promises.readdir(this.args.sastPath);
+      const files = await FileSystem.promises.readdir(this.args.sourceCodePath);
       const sastFile = files.find((file) => SOOS_SAST_CONSTANTS.FilePatternRegex.test(file));
 
       if (!sastFile) {
         throw new Error("No SAST file found in the directory.");
       }
 
-      return Path.join(this.args.sastPath, sastFile);
+      return Path.join(this.args.sourceCodePath, sastFile);
     }
 
-    if (!SOOS_SAST_CONSTANTS.FilePatternRegex.test(this.args.sastPath)) {
+    if (!SOOS_SAST_CONSTANTS.FilePatternRegex.test(this.args.sourceCodePath)) {
       throw new Error("The file does not match the required SAST pattern.");
     }
 
-    return this.args.sastPath;
+    return this.args.sourceCodePath;
   }
 
   static async createAndRun(): Promise<void> {
