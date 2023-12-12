@@ -1,18 +1,28 @@
 #!/usr/bin/env node
-import { LogLevel, SOOS_CONSTANTS, ScanStatus, ScanType, soosLogger } from "@soos-io/api-client";
+import {
+  IntegrationName,
+  IntegrationType,
+  LogLevel,
+  SOOS_CONSTANTS,
+  ScanStatus,
+  ScanType,
+  soosLogger,
+} from "@soos-io/api-client";
 import {
   getEnvVariable,
   obfuscateProperties,
   ensureEnumValue,
   ensureValue,
+  ensureNonEmptyValue,
 } from "@soos-io/api-client/dist/utilities";
 import { ArgumentParser } from "argparse";
 import * as FileSystem from "fs";
 import * as Path from "path";
 import FormData from "form-data";
-import { CONSTANTS } from "./utils/constants";
 import { exit } from "process";
 import SOOSAnalysisApiClient from "@soos-io/api-client/dist/api/SOOSAnalysisApiClient";
+import { SOOS_SAST_CONSTANTS } from "./constants";
+import { version } from "../package.json";
 
 interface SOOSSASTAnalysisArgs {
   apiKey: string;
@@ -24,8 +34,8 @@ interface SOOSSASTAnalysisArgs {
   buildVersion: string;
   clientId: string;
   commitHash: string;
-  integrationName: string;
-  integrationType: string;
+  integrationName: IntegrationName;
+  integrationType: IntegrationType;
   logLevel: LogLevel;
   operatingEnvironment: string;
   projectName: string;
@@ -42,7 +52,7 @@ class SOOSSASTAnalysis {
 
     parser.add_argument("--apiKey", {
       help: "SOOS API Key - get yours from https://app.soos.io/integrate/sast",
-      default: getEnvVariable(CONSTANTS.SOOS.API_KEY_ENV_VAR),
+      default: getEnvVariable(SOOS_CONSTANTS.EnvironmentVariables.ApiKey),
       required: false,
     });
 
@@ -50,6 +60,9 @@ class SOOSSASTAnalysis {
       help: "SOOS API URL - Intended for internal use only, do not modify.",
       default: "https://api.soos.io/api/",
       required: false,
+      type: (value: string) => {
+        return ensureNonEmptyValue(value, "apiURL");
+      },
     });
 
     parser.add_argument("--appVersion", {
@@ -59,49 +72,51 @@ class SOOSSASTAnalysis {
 
     parser.add_argument("--branchName", {
       help: "The name of the branch from the SCM System.",
-      default: null,
       required: false,
     });
 
     parser.add_argument("--branchURI", {
       help: "The URI to the branch from the SCM System.",
-      default: null,
       required: false,
     });
 
     parser.add_argument("--buildURI", {
       help: "URI to CI build info.",
-      default: null,
       required: false,
     });
 
     parser.add_argument("--buildVersion", {
       help: "Version of application build artifacts.",
-      default: null,
       required: false,
     });
 
     parser.add_argument("--clientId", {
       help: "SOOS Client ID - get yours from https://app.soos.io/integrate/sast",
-      default: getEnvVariable(CONSTANTS.SOOS.CLIENT_ID_ENV_VAR),
+      default: getEnvVariable(SOOS_CONSTANTS.EnvironmentVariables.ClientId),
       required: false,
     });
 
     parser.add_argument("--commitHash", {
       help: "The commit hash value from the SCM System.",
-      default: null,
       required: false,
     });
 
     parser.add_argument("--integrationName", {
       help: "Integration Name - Intended for internal use only.",
       required: false,
+      type: (value: string) => {
+        return ensureEnumValue(IntegrationName, value);
+      },
+      default: IntegrationName.SoosSast,
     });
 
     parser.add_argument("--integrationType", {
       help: "Integration Type - Intended for internal use only.",
       required: false,
-      default: CONSTANTS.SOOS.DEFAULT_INTEGRATION_TYPE,
+      type: (value: string) => {
+        return ensureEnumValue(IntegrationType, value);
+      },
+      default: IntegrationType.Script,
     });
 
     parser.add_argument("--logLevel", {
@@ -115,7 +130,6 @@ class SOOSSASTAnalysis {
 
     parser.add_argument("--operatingEnvironment", {
       help: "Set Operating environment for information purposes only.",
-      default: null,
       required: false,
     });
 
@@ -127,6 +141,7 @@ class SOOSSASTAnalysis {
     parser.add_argument("--scriptVersion", {
       help: "Script Version - Intended for internal use only.",
       required: false,
+      default: version,
     });
 
     parser.add_argument("--verbose", {
@@ -201,7 +216,7 @@ class SOOSSASTAnalysis {
 
       soosLogger.logLineSeparator();
       soosLogger.info(
-        `Analysis scan started successfully, to see the results visit: ${result.scanUrl}`
+        `Analysis scan started successfully, to see the results visit: ${result.scanUrl}`,
       );
     } catch (error) {
       if (projectHash && branchHash && analysisId)
@@ -239,7 +254,7 @@ class SOOSSASTAnalysis {
 
     if (sastPathStat.isDirectory()) {
       const files = await FileSystem.promises.readdir(this.args.sastPath);
-      const sastFile = files.find((file) => CONSTANTS.SAST.FILE_REGEX.test(file));
+      const sastFile = files.find((file) => SOOS_SAST_CONSTANTS.FilePatternRegex.test(file));
 
       if (!sastFile) {
         throw new Error("No SAST file found in the directory.");
@@ -248,7 +263,7 @@ class SOOSSASTAnalysis {
       return Path.join(this.args.sastPath, sastFile);
     }
 
-    if (!CONSTANTS.SAST.FILE_REGEX.test(this.args.sastPath)) {
+    if (!SOOS_SAST_CONSTANTS.FilePatternRegex.test(this.args.sastPath)) {
       throw new Error("The file does not match the required SAST pattern.");
     }
 
@@ -267,8 +282,8 @@ class SOOSSASTAnalysis {
         JSON.stringify(
           obfuscateProperties(args as unknown as Record<string, unknown>, ["apiKey"]),
           null,
-          2
-        )
+          2,
+        ),
       );
       ensureValue(args.clientId, "clientId");
       ensureValue(args.apiKey, "apiKey");
