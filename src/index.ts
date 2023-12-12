@@ -59,6 +59,22 @@ class SOOSSASTAnalysis {
       version,
     );
 
+    analysisArgumentParser.argumentParser.add_argument("--directoriesToExclude", {
+      help: "Listing of directories or patterns to exclude from the search for manifest files. eg: **bin/start/**, **/start/**",
+      type: (value: string) => {
+        return value.split(",").map((pattern) => pattern.trim());
+      },
+      required: false,
+    });
+
+    analysisArgumentParser.argumentParser.add_argument("--filesToExclude", {
+      help: "Listing of files or patterns patterns to exclude from the search for manifest files. eg: **/req**.txt/, **/requirements.txt",
+      type: (value: string) => {
+        return value.split(",").map((pattern) => pattern.trim());
+      },
+      required: false,
+    });
+
     analysisArgumentParser.argumentParser.add_argument("--sourceCodePath", {
       help: "The path to start searching for SAST files.",
       required: false,
@@ -177,6 +193,7 @@ class SOOSSASTAnalysis {
   async findSASTFiles(
     path: string,
   ): Promise<{ files: Array<IAnalysisFile>; hasMoreThanMaximumManifests: boolean }> {
+    // TODO use filesToExclude/directoriesToExclude
     soosLogger.info(`Searching for SAST files from ${path}...`);
     const pattern = `${path}/${SOOS_SAST_CONSTANTS.FilePattern}`;
     const files = Glob.sync(pattern, {
