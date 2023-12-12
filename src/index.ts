@@ -50,11 +50,15 @@ class SOOSSASTAnalysis {
   constructor(private args: SOOSSASTAnalysisArgs) {}
 
   static parseArgs(): SOOSSASTAnalysisArgs {
-    const analysisArgumentParser = AnalysisArgumentParser.create(ScanType.SAST, version);
+    const analysisArgumentParser = AnalysisArgumentParser.create(ScanType.SAST);
 
-    // TODO fix integration name/type - pass them in here
-    analysisArgumentParser.addBaseScanArguments();
+    analysisArgumentParser.addBaseScanArguments(IntegrationName.SoosSast, IntegrationType.Script, version);
 
+    analysisArgumentParser.argumentParser.add_argument("--sourceCodePath", {
+      help: "The path to start searching for SAST files.",
+      required: false,
+      default: process.cwd()
+    });
 
     // TODO wrap this method in AnalysisArgumentParser
     soosLogger.info("Parsing arguments");
@@ -141,7 +145,7 @@ class SOOSSASTAnalysis {
 
   async getSastFilesAsFormData(sastFiles: ISastFile[]): Promise<FormData> {
     const formData = sastFiles.reduce((formDataAcc: FormData, sastFile, index) => {
-      const workingDirectory = process.env.SYSTEM_DEFAULTWORKINGDIRECTORY ?? "";
+      const workingDirectory = this.args.sourceCodePath;
       const fileParts = sastFile.path.replace(workingDirectory, "").split(Path.sep);
       const parentFolder =
       fileParts.length >= 2
@@ -162,6 +166,7 @@ class SOOSSASTAnalysis {
 
   async findSASTFiles(): Promise<Array<ISastFile>> {
       soosLogger.info("Searching for SAST files");
+      process.chdir(this.args.sourceCodePath);
       const pattern = SOOS_SAST_CONSTANTS.FilePattern;
       const files = Glob.sync(pattern, {
         nocase: true,
