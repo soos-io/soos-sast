@@ -8,14 +8,7 @@ import {
   ScanType,
   soosLogger,
 } from "@soos-io/api-client";
-import {
-  getEnvVariable,
-  obfuscateProperties,
-  ensureEnumValue,
-  ensureValue,
-  ensureNonEmptyValue,
-} from "@soos-io/api-client/dist/utilities";
-import { ArgumentParser } from "argparse";
+import { obfuscateProperties, ensureValue } from "@soos-io/api-client/dist/utilities";
 import * as FileSystem from "fs";
 import * as Path from "path";
 import FormData from "form-data";
@@ -23,6 +16,7 @@ import { exit } from "process";
 import { SOOS_SAST_CONSTANTS } from "./constants";
 import { version } from "../package.json";
 import AnalysisService from "@soos-io/api-client/dist/services/AnalysisService";
+import AnalysisArgumentParser from "@soos-io/api-client/dist/services/AnalysisArgumentParser";
 
 interface SOOSSASTAnalysisArgs {
   apiKey: string;
@@ -50,138 +44,20 @@ class SOOSSASTAnalysis {
   constructor(private args: SOOSSASTAnalysisArgs) {}
 
   static parseArgs(): SOOSSASTAnalysisArgs {
-    const parser = new ArgumentParser({ description: "SOOS SAST" });
+    const analysisArgumentParser = AnalysisArgumentParser.create(ScanType.SAST, version);
 
-    parser.add_argument("--apiKey", {
-      help: "SOOS API Key - get yours from https://app.soos.io/integrate/sast",
-      default: getEnvVariable(SOOS_CONSTANTS.EnvironmentVariables.ApiKey),
-      required: false,
-    });
+    // TODO fix integration name/type - pass them in here
+    analysisArgumentParser.addBaseScanArguments();
 
-    parser.add_argument("--apiURL", {
-      help: "SOOS API URL - Intended for internal use only, do not modify.",
-      default: "https://api.soos.io/api/",
-      required: false,
-      type: (value: string) => {
-        return ensureNonEmptyValue(value, "apiURL");
-      },
-    });
-
-    parser.add_argument("--appVersion", {
-      help: "App Version - Intended for internal use only.",
-      required: false,
-    });
-
-    parser.add_argument("--branchName", {
-      help: "The name of the branch from the SCM System.",
-      required: false,
-    });
-
-    parser.add_argument("--branchURI", {
-      help: "The URI to the branch from the SCM System.",
-      required: false,
-    });
-
-    parser.add_argument("--buildURI", {
-      help: "URI to CI build info.",
-      required: false,
-    });
-
-    parser.add_argument("--buildVersion", {
-      help: "Version of application build artifacts.",
-      required: false,
-    });
-
-    parser.add_argument("--clientId", {
-      help: "SOOS Client ID - get yours from https://app.soos.io/integrate/sast",
-      default: getEnvVariable(SOOS_CONSTANTS.EnvironmentVariables.ClientId),
-      required: false,
-    });
-
-    parser.add_argument("--commitHash", {
-      help: "The commit hash value from the SCM System.",
-      required: false,
-    });
-
-    parser.add_argument("--directoriesToExclude", {
-      help: "Listing of directories or patterns to exclude from the search for manifest files. eg: **bin/start/**, **/start/**",
-      type: (value: string) => {
-        return value.split(",").map((pattern) => pattern.trim()); // TODO use remove duplicate in params parser service once it is there from SCA
-      },
-      required: false,
-    });
-
-    parser.add_argument("--filesToExclude", {
-      help: "Listing of files or patterns patterns to exclude from the search for manifest files. eg: **/req**.txt/, **/requirements.txt",
-      type: (value: string) => {
-        return value.split(",").map((pattern) => pattern.trim());
-      },
-      required: false,
-    });
-
-    parser.add_argument("--integrationName", {
-      help: "Integration Name - Intended for internal use only.",
-      required: false,
-      type: (value: string) => {
-        return ensureEnumValue(IntegrationName, value);
-      },
-      default: IntegrationName.SoosSast,
-    });
-
-    parser.add_argument("--integrationType", {
-      help: "Integration Type - Intended for internal use only.",
-      required: false,
-      type: (value: string) => {
-        return ensureEnumValue(IntegrationType, value);
-      },
-      default: IntegrationType.Script,
-    });
-
-    parser.add_argument("--logLevel", {
-      help: "Minimum level to show logs: PASS, IGNORE, INFO, WARN or FAIL.",
-      default: LogLevel.INFO,
-      required: false,
-      type: (value: string) => {
-        return ensureEnumValue(LogLevel, value);
-      },
-    });
-
-    parser.add_argument("--operatingEnvironment", {
-      help: "Set Operating environment for information purposes only.",
-      required: false,
-    });
-
-    parser.add_argument("--projectName", {
-      help: "Project Name - this is what will be displayed in the SOOS app.",
-      required: true,
-    });
-
-    parser.add_argument("--scriptVersion", {
-      help: "Script Version - Intended for internal use only.",
-      required: false,
-      default: version,
-    });
-
-    parser.add_argument("--verbose", {
-      help: "Enable verbose logging.",
-      action: "store_true",
-      default: false,
-      required: false,
-    });
-
-    parser.add_argument("--sourceCodePath", {
-      help: "Root path to begin recursive search for SARIF files.",
-      default: process.cwd(),
-      required: false,
-    });
-
+    // TODO wrap this method in AnalysisArgumentParser
     soosLogger.info("Parsing arguments");
-    return parser.parse_args();
+    return analysisArgumentParser.argumentParser.parse_args();
   }
 
   async runAnalysis(): Promise<void> {
     const scanType = ScanType.SAST;
 
+    // TODO file all files matching *.sarif.json from the workingDirectory
     const filePath = await this.findSASTFilePath();
     const soosAnalysisService = AnalysisService.create(this.args.apiKey, this.args.apiURL);
 
