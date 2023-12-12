@@ -17,6 +17,7 @@ import { exit } from "process";
 import { version } from "../package.json";
 import AnalysisService from "@soos-io/api-client/dist/services/AnalysisService";
 import AnalysisArgumentParser from "@soos-io/api-client/dist/services/AnalysisArgumentParser";
+import StringUtilities from "@soos-io/api-client/dist/StringUtilities";
 import { SOOS_SAST_CONSTANTS } from "./constants";
 
 interface SOOSSASTAnalysisArgs {
@@ -41,7 +42,7 @@ interface SOOSSASTAnalysisArgs {
   verbose: boolean;
 }
 
-interface ISastFile {
+interface IAnalysisFile {
   name: string;
   path: string;
 }
@@ -72,8 +73,9 @@ class SOOSSASTAnalysis {
   async runAnalysis(): Promise<void> {
     const scanType = ScanType.SAST;
 
-    const sastFiles = await this.findSASTFiles(this.args.sourceCodePath);
-    if (sastFiles.length === 0) {
+    // TODO use hasMoreThanMaximumManifests
+    const { files } = await this.findSASTFiles(this.args.sourceCodePath);
+    if (files.length === 0) {
       throw new Error("No SAST files found.");
     }
 
@@ -119,7 +121,7 @@ class SOOSSASTAnalysis {
 
       soosLogger.info("Uploading SAST Files");
 
-      const formData = await this.getSastFilesAsFormData(sastFiles);
+      const formData = await this.getSastFilesAsFormData(files);
 
       await soosAnalysisService.analysisApiClient.uploadScanToolResult({
         clientId: this.args.clientId,
@@ -128,6 +130,7 @@ class SOOSSASTAnalysis {
         scanType,
         scanId: analysisId,
         resultFile: formData,
+        // TODO hasMoreThanMaximumManifests,
       });
 
       soosLogger.logLineSeparator();
@@ -151,7 +154,7 @@ class SOOSSASTAnalysis {
   }
 
   // TODO move to api-client analysisService as a helper method
-  async getSastFilesAsFormData(sastFiles: ISastFile[]): Promise<FormData> {
+  async getSastFilesAsFormData(sastFiles: IAnalysisFile[]): Promise<FormData> {
     const formData = sastFiles.reduce((formDataAcc: FormData, sastFile, index) => {
       const workingDirectory = this.args.sourceCodePath;
       const fileParts = sastFile.path.replace(workingDirectory, "").split(Path.sep);
@@ -171,7 +174,9 @@ class SOOSSASTAnalysis {
   }
 
   // TODO move to api-client analysisService as a helper method - generic file
-  async findSASTFiles(path: string): Promise<Array<ISastFile>> {
+  async findSASTFiles(
+    path: string,
+  ): Promise<{ files: Array<IAnalysisFile>; hasMoreThanMaximumManifests: boolean }> {
     soosLogger.info(`Searching for SAST files from ${path}...`);
     const pattern = `${path}/${SOOS_SAST_CONSTANTS.FilePattern}`;
     const files = Glob.sync(pattern, {
@@ -188,7 +193,30 @@ class SOOSSASTAnalysis {
 
     soosLogger.info(`${matchingFiles.length} files found matching pattern '${pattern}'.`);
 
-    return matchingFiles;
+    const hasMoreThanMaximumManifests =
+      matchingFiles.length > SOOS_CONSTANTS.FileUploads.MaxManifests;
+    const filesToUpload = matchingFiles.slice(0, SOOS_CONSTANTS.FileUploads.MaxManifests);
+
+    if (hasMoreThanMaximumManifests) {
+      const filesToSkip = matchingFiles.slice(SOOS_CONSTANTS.FileUploads.MaxManifests);
+      const filesDetectedString = StringUtilities.pluralizeTemplate(
+        matchingFiles.length,
+        "file was",
+        "files were",
+      );
+      const filesSkippedString = StringUtilities.pluralizeTemplate(
+        filesToSkip.length,
+        "file",
+        "files",
+      );
+      soosLogger.info(
+        `The maximum number of SAST files per scan is ${SOOS_CONSTANTS.FileUploads.MaxManifests}. ${filesDetectedString} detected, and ${filesSkippedString} will be not be uploaded. \n`,
+        `The following manifests will not be included in the scan: \n`,
+        filesToSkip.map((file) => `  "${file.name}": "${file.path}"`).join("\n"),
+      );
+    }
+
+    return { files: filesToUpload, hasMoreThanMaximumManifests };
   }
 
   static async createAndRun(): Promise<void> {
