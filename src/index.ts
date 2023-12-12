@@ -52,12 +52,16 @@ class SOOSSASTAnalysis {
   static parseArgs(): SOOSSASTAnalysisArgs {
     const analysisArgumentParser = AnalysisArgumentParser.create(ScanType.SAST);
 
-    analysisArgumentParser.addBaseScanArguments(IntegrationName.SoosSast, IntegrationType.Script, version);
+    analysisArgumentParser.addBaseScanArguments(
+      IntegrationName.SoosSast,
+      IntegrationType.Script,
+      version,
+    );
 
     analysisArgumentParser.argumentParser.add_argument("--sourceCodePath", {
       help: "The path to start searching for SAST files.",
       required: false,
-      default: process.cwd()
+      default: process.cwd(),
     });
 
     // TODO wrap this method in AnalysisArgumentParser
@@ -68,8 +72,11 @@ class SOOSSASTAnalysis {
   async runAnalysis(): Promise<void> {
     const scanType = ScanType.SAST;
 
-    
-    const sastFiles = await this.findSASTFiles();
+    const sastFiles = await this.findSASTFiles(this.args.sourceCodePath);
+    if (sastFiles.length === 0) {
+      throw new Error("No SAST files found.");
+    }
+
     const soosAnalysisService = AnalysisService.create(this.args.apiKey, this.args.apiURL);
 
     let projectHash: string | undefined;
@@ -94,8 +101,8 @@ class SOOSSASTAnalysis {
         integrationName: this.args.integrationName,
         appVersion: this.args.appVersion,
         scanType,
-        scriptVersion: version,
-        contributingDeveloperAudit: [],
+        scriptVersion: this.args.scriptVersion,
+        contributingDeveloperAudit: [], // TODO audit
         toolName: undefined,
         toolVersion: undefined,
       });
@@ -148,47 +155,38 @@ class SOOSSASTAnalysis {
       const workingDirectory = this.args.sourceCodePath;
       const fileParts = sastFile.path.replace(workingDirectory, "").split(Path.sep);
       const parentFolder =
-      fileParts.length >= 2
-          ? fileParts.slice(0, fileParts.length - 1).join(Path.sep)
-          : "";
-          const suffix = index > 0 ? index : "";
-          const fileReadStream = FileSystem.createReadStream(sastFile.path, {
-            encoding: SOOS_CONSTANTS.FileUploads.Encoding,
-          });
-          formDataAcc.append(`file${suffix}`, fileReadStream);
-          formDataAcc.append(`parentFolder${suffix}`, parentFolder);
-    
-          return formDataAcc;
+        fileParts.length >= 2 ? fileParts.slice(0, fileParts.length - 1).join(Path.sep) : "";
+      const suffix = index > 0 ? index : "";
+      const fileReadStream = FileSystem.createReadStream(sastFile.path, {
+        encoding: SOOS_CONSTANTS.FileUploads.Encoding,
+      });
+      formDataAcc.append(`file${suffix}`, fileReadStream);
+      formDataAcc.append(`parentFolder${suffix}`, parentFolder);
+
+      return formDataAcc;
     }, new FormData());
 
     return formData;
   }
 
-  async findSASTFiles(): Promise<Array<ISastFile>> {
-      soosLogger.info("Searching for SAST files");
-      process.chdir(this.args.sourceCodePath);
-      const pattern = SOOS_SAST_CONSTANTS.FilePattern;
-      const files = Glob.sync(pattern, {
-        nocase: true,
+  async findSASTFiles(path: string): Promise<Array<ISastFile>> {
+    soosLogger.info(`Searching for SAST files from ${path}...`);
+    const pattern = `${path}/${SOOS_SAST_CONSTANTS.FilePattern}`;
+    const files = Glob.sync(pattern, {
+      nocase: true,
+    });
+    const matchingFiles = files
+      .map((x) => Path.resolve(x))
+      .map((f) => {
+        return {
+          name: Path.basename(f),
+          path: f,
+        };
       });
 
-      const absolutePathFiles = files.map((x) => Path.resolve(x));
+    soosLogger.info(`${matchingFiles.length} files found matching pattern '${pattern}'.`);
 
-      const matchingFilesMessage = `${absolutePathFiles.length} files found matching pattern '${pattern}'.`
-
-      if (absolutePathFiles.length > 0) {
-        soosLogger.info(matchingFilesMessage);
-      }else{
-        throw new Error("No SAST files found.");
-      }
-    
-
-    return absolutePathFiles.map((f) => {
-      return {
-        name: Path.basename(f),
-        path: f,
-      };
-    });
+    return matchingFiles;
   }
 
   static async createAndRun(): Promise<void> {
