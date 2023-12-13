@@ -97,6 +97,7 @@ class SOOSSASTAnalysis {
     let projectHash: string | undefined;
     let branchHash: string | undefined;
     let analysisId: string | undefined;
+    let scanStatusUrl: string | undefined;
 
     try {
       soosLogger.info("Starting SOOS SAST Analysis");
@@ -136,6 +137,7 @@ class SOOSSASTAnalysis {
       projectHash = result.projectHash;
       branchHash = result.branchHash;
       analysisId = result.analysisId;
+      scanStatusUrl = result.scanStatusUrl;
 
       soosLogger.info(`Project Hash: ${projectHash}`);
       soosLogger.info(`Branch Hash: ${branchHash}`);
@@ -174,6 +176,7 @@ class SOOSSASTAnalysis {
           scanType,
           status: ScanStatus.Error,
           message: `Error while performing scan.`,
+          scanStatusUrl,
         });
       soosLogger.error(error);
       exit(1);
