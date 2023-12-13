@@ -80,11 +80,11 @@ class SOOSSASTAnalysis {
 
     // TODO use hasMoreThanMaximumManifests
     const { filePaths } = await soosAnalysisService.findAnalysisFiles(
+      scanType,
       this.args.sourceCodePath,
       SOOS_SAST_CONSTANTS.FilePattern,
       this.args.filesToExclude,
       this.args.directoriesToExclude,
-      scanType,
     );
 
     if (filePaths.length === 0) {
