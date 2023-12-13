@@ -3,11 +3,17 @@ import {
   IntegrationName,
   IntegrationType,
   LogLevel,
+  OnFailure,
   ScanStatus,
   ScanType,
   soosLogger,
 } from "@soos-io/api-client";
-import { obfuscateProperties, ensureNonEmptyValue } from "@soos-io/api-client/dist/utilities";
+import {
+  obfuscateProperties,
+  ensureNonEmptyValue,
+  verifyScanStatus,
+  ensureEnumValue,
+} from "@soos-io/api-client/dist/utilities";
 import { exit } from "process";
 import { version } from "../package.json";
 import AnalysisService from "@soos-io/api-client/dist/services/AnalysisService";
@@ -31,6 +37,7 @@ interface SOOSSASTAnalysisArgs {
   filesToExclude: Array<string>;
   integrationName: IntegrationName;
   integrationType: IntegrationType;
+  onFailure: OnFailure;
   logLevel: LogLevel;
   operatingEnvironment: string;
   projectName: string;
@@ -65,6 +72,15 @@ class SOOSSASTAnalysis {
         return value.split(",").map((pattern) => pattern.trim());
       },
       required: false,
+    });
+
+    analysisArgumentParser.argumentParser.add_argument("--onFailure", {
+      help: "Action to perform when the scan fails. Options: fail_the_build, continue_on_failure.",
+      default: OnFailure.Continue,
+      required: false,
+      type: (value: string) => {
+        return ensureEnumValue(OnFailure, value);
+      },
     });
 
     analysisArgumentParser.argumentParser.add_argument("--sourceCodePath", {
@@ -163,9 +179,18 @@ class SOOSSASTAnalysis {
       });
 
       soosLogger.logLineSeparator();
-      soosLogger.info(
-        `Scan results uploaded successfully. To see the results visit: ${result.scanUrl}`,
-      );
+      soosLogger.info("Scan results uploaded successfully.");
+
+      const scanStatus = await soosAnalysisService.waitForScanToFinish({
+        scanStatusUrl,
+        scanUrl: result.scanUrl,
+        scanType,
+      });
+
+      const exitWithError = verifyScanStatus(scanStatus);
+      if (this.args.onFailure === OnFailure.Fail && exitWithError) {
+        exit(1);
+      }
     } catch (error) {
       if (projectHash && branchHash && analysisId)
         await soosAnalysisService.updateScanStatus({

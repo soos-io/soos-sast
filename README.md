@@ -41,7 +41,8 @@ Then run from the same terminal `node ./soos/node_modules/@soos-io/soos-sast/bin
 | `--filesToExclude`       | None                                      | Listing of files or patterns to exclude from the search for manifest files. eg: **/req**.txt/, **/requirements.txt                   |
 | `--integrationName`      | N/A                                       | Integration Name - Intended for internal use only.                                                                                   |
 | `--integrationType`      | N/A                                       | Integration Type - Intended for internal use only.                                                                                   |
-| `--logLevel`             | `INFO`                                    | Minimum level to show logs: PASS, IGNORE, INFO, WARN or FAIL. |
+| `--logLevel`             | `INFO`                                    | Minimum level to show logs: PASS, IGNORE, INFO, WARN or FAIL.                                                                        |
+| `--onFailure`            | `continue_on_failure`                     | Action to perform when the scan fails. Options: fail_the_build, continue_on_failure.                                                 |
 | `--operatingEnvironment` | `null`                                    | Set Operating environment for information purposes only.                                                                             |
 | `--projectName`          | N/A                                       | Project Name - this is what will be displayed in the SOOS app.                                                                       |
 | `--scriptVersion`        | N/A                                       | Script Version - Intended for internal use only.                                                                                     |
