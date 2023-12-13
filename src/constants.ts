@@ -1,3 +1,4 @@
 export const SOOS_SAST_CONSTANTS = {
-  FilePatternRegex: /\.sarif\.json$/,
+  FilePattern: "**/*.sarif.json",
+  MaxFiles: 50,
 };
