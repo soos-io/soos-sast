@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/soos-io/soos-sast#readme",
   "dependencies": {
-    "@soos-io/api-client": "^0.2.10",
+    "@soos-io/api-client": "^0.2.11",
     "argparse": "^2.0.1",
     "tslib": "^2.6.2"
   },

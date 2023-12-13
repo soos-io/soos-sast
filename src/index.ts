@@ -81,8 +81,7 @@ class SOOSSASTAnalysis {
     const scanType = ScanType.SAST;
     const soosAnalysisService = AnalysisService.create(this.args.apiKey, this.args.apiURL);
 
-    // TODO const { filePaths, hasMoreThanMaximumFiles }
-    const { filePaths } = await soosAnalysisService.findAnalysisFiles(
+    const { filePaths, hasMoreThanMaximumFiles } = await soosAnalysisService.findAnalysisFiles(
       scanType,
       this.args.sourceCodePath,
       SOOS_SAST_CONSTANTS.FilePattern,
@@ -160,7 +159,7 @@ class SOOSSASTAnalysis {
         scanType,
         scanId: analysisId,
         resultFile: formData,
-        // TODO hasMoreThanMaximumFiles,
+        hasMoreThanMaximumFiles,
       });
 
       soosLogger.logLineSeparator();
