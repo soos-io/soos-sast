@@ -7,11 +7,7 @@ import {
   ScanType,
   soosLogger,
 } from "@soos-io/api-client";
-import {
-  obfuscateProperties,
-  ensureValue,
-  ensureNonEmptyValue,
-} from "@soos-io/api-client/dist/utilities";
+import { obfuscateProperties, ensureNonEmptyValue } from "@soos-io/api-client/dist/utilities";
 import { exit } from "process";
 import { version } from "../package.json";
 import AnalysisService from "@soos-io/api-client/dist/services/AnalysisService";
