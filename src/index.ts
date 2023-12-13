@@ -152,7 +152,7 @@ class SOOSSASTAnalysis {
         scanType,
         scanId: analysisId,
         resultFile: formData,
-        // TODO hasMoreThanMaximumManifests,
+        // TODO hasMoreThanMaximumFiles,
       });
 
       soosLogger.logLineSeparator();
