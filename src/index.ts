@@ -81,6 +81,7 @@ class SOOSSASTAnalysis {
     const scanType = ScanType.SAST;
     const soosAnalysisService = AnalysisService.create(this.args.apiKey, this.args.apiURL);
 
+    // TODO const { filePaths, hasMoreThanMaximumFiles }
     const { filePaths } = await soosAnalysisService.findAnalysisFiles(
       scanType,
       this.args.sourceCodePath,
