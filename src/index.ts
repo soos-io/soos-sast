@@ -7,7 +7,11 @@ import {
   ScanType,
   soosLogger,
 } from "@soos-io/api-client";
-import { obfuscateProperties, ensureValue } from "@soos-io/api-client/dist/utilities";
+import {
+  obfuscateProperties,
+  ensureValue,
+  ensureNonEmptyValue,
+} from "@soos-io/api-client/dist/utilities";
 import { exit } from "process";
 import { version } from "../package.json";
 import AnalysisService from "@soos-io/api-client/dist/services/AnalysisService";
@@ -24,6 +28,9 @@ interface SOOSSASTAnalysisArgs {
   buildVersion: string;
   clientId: string;
   commitHash: string;
+  contributingDeveloperId: string;
+  contributingDeveloperSource: string;
+  contributingDeveloperSourceName: string;
   directoriesToExclude: Array<string>;
   filesToExclude: Array<string>;
   integrationName: IntegrationName;
@@ -78,13 +85,13 @@ class SOOSSASTAnalysis {
     const scanType = ScanType.SAST;
     const soosAnalysisService = AnalysisService.create(this.args.apiKey, this.args.apiURL);
 
-    // TODO use hasMoreThanMaximumManifests
     const { filePaths } = await soosAnalysisService.findAnalysisFiles(
       scanType,
       this.args.sourceCodePath,
       SOOS_SAST_CONSTANTS.FilePattern,
       this.args.filesToExclude,
       this.args.directoriesToExclude,
+      SOOS_SAST_CONSTANTS.MaxFiles,
     );
 
     if (filePaths.length === 0) {
@@ -104,6 +111,13 @@ class SOOSSASTAnalysis {
         clientId: this.args.clientId,
         projectName: this.args.projectName,
         commitHash: this.args.commitHash,
+        contributingDeveloperAudit: [
+          {
+            contributingDeveloperId: this.args.contributingDeveloperId,
+            source: this.args.contributingDeveloperSource,
+            sourceName: this.args.contributingDeveloperSourceName,
+          },
+        ],
         branchName: this.args.branchName,
         buildVersion: this.args.buildVersion,
         buildUri: this.args.buildUri,
@@ -114,7 +128,6 @@ class SOOSSASTAnalysis {
         appVersion: this.args.appVersion,
         scanType,
         scriptVersion: this.args.scriptVersion,
-        contributingDeveloperAudit: [], // TODO audit
         toolName: undefined,
         toolVersion: undefined,
       });
@@ -181,8 +194,8 @@ class SOOSSASTAnalysis {
           2,
         ),
       );
-      ensureValue(args.clientId, "clientId");
-      ensureValue(args.apiKey, "apiKey");
+      ensureNonEmptyValue(args.clientId, "clientId");
+      ensureNonEmptyValue(args.apiKey, "apiKey");
       soosLogger.logLineSeparator();
       const soosSASTAnalysis = new SOOSSASTAnalysis(args);
       await soosSASTAnalysis.runAnalysis();
