@@ -107,13 +107,18 @@ class SOOSSASTAnalysis {
         clientId: this.args.clientId,
         projectName: this.args.projectName,
         commitHash: this.args.commitHash,
-        contributingDeveloperAudit: [
-          {
-            contributingDeveloperId: this.args.contributingDeveloperId,
-            source: this.args.contributingDeveloperSource,
-            sourceName: this.args.contributingDeveloperSourceName,
-          },
-        ],
+        contributingDeveloperAudit:
+          !this.args.contributingDeveloperId ||
+          !this.args.contributingDeveloperSource ||
+          !this.args.contributingDeveloperSourceName
+            ? []
+            : [
+                {
+                  contributingDeveloperId: this.args.contributingDeveloperId,
+                  source: this.args.contributingDeveloperSource,
+                  sourceName: this.args.contributingDeveloperSourceName,
+                },
+              ],
         branchName: this.args.branchName,
         buildVersion: this.args.buildVersion,
         buildUri: this.args.buildUri,
