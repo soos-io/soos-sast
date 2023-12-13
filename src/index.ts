@@ -81,25 +81,25 @@ class SOOSSASTAnalysis {
     const scanType = ScanType.SAST;
     const soosAnalysisService = AnalysisService.create(this.args.apiKey, this.args.apiURL);
 
-    const { filePaths, hasMoreThanMaximumFiles } = await soosAnalysisService.findAnalysisFiles(
-      scanType,
-      this.args.sourceCodePath,
-      SOOS_SAST_CONSTANTS.FilePattern,
-      this.args.filesToExclude,
-      this.args.directoriesToExclude,
-      SOOS_SAST_CONSTANTS.MaxFiles,
-    );
-
-    if (filePaths.length === 0) {
-      throw new Error("No SAST files found.");
-    }
-
     let projectHash: string | undefined;
     let branchHash: string | undefined;
     let analysisId: string | undefined;
     let scanStatusUrl: string | undefined;
 
     try {
+      const { filePaths, hasMoreThanMaximumFiles } = await soosAnalysisService.findAnalysisFiles(
+        scanType,
+        this.args.sourceCodePath,
+        SOOS_SAST_CONSTANTS.FilePattern,
+        this.args.filesToExclude,
+        this.args.directoriesToExclude,
+        SOOS_SAST_CONSTANTS.MaxFiles,
+      );
+
+      if (filePaths.length === 0) {
+        throw new Error("No SAST files found.");
+      }
+
       soosLogger.info("Starting SOOS SAST Analysis");
       soosLogger.info(`Creating scan for project '${this.args.projectName}'...`);
       soosLogger.info(`Branch Name: ${this.args.branchName}`);
