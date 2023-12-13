@@ -3,21 +3,15 @@ import {
   IntegrationName,
   IntegrationType,
   LogLevel,
-  SOOS_CONSTANTS,
   ScanStatus,
   ScanType,
   soosLogger,
 } from "@soos-io/api-client";
 import { obfuscateProperties, ensureValue } from "@soos-io/api-client/dist/utilities";
-import * as FileSystem from "fs";
-import * as Path from "path";
-import FormData from "form-data";
-import * as Glob from "glob";
 import { exit } from "process";
 import { version } from "../package.json";
 import AnalysisService from "@soos-io/api-client/dist/services/AnalysisService";
 import AnalysisArgumentParser from "@soos-io/api-client/dist/services/AnalysisArgumentParser";
-import StringUtilities from "@soos-io/api-client/dist/StringUtilities";
 import { SOOS_SAST_CONSTANTS } from "./constants";
 
 interface SOOSSASTAnalysisArgs {
@@ -42,11 +36,6 @@ interface SOOSSASTAnalysisArgs {
   verbose: boolean;
 }
 
-interface IAnalysisFile {
-  name: string;
-  path: string;
-}
-
 class SOOSSASTAnalysis {
   constructor(private args: SOOSSASTAnalysisArgs) {}
 
@@ -68,7 +57,7 @@ class SOOSSASTAnalysis {
     });
 
     analysisArgumentParser.argumentParser.add_argument("--filesToExclude", {
-      help: "Listing of files or patterns patterns to exclude from the search for manifest files. eg: **/req**.txt/, **/requirements.txt",
+      help: "Listing of files or patterns patterns to exclude from the search for manifest files. eg: **/sa**.sarif.json/, **/sast.sarif.json",
       type: (value: string) => {
         return value.split(",").map((pattern) => pattern.trim());
       },
@@ -81,21 +70,26 @@ class SOOSSASTAnalysis {
       default: process.cwd(),
     });
 
-    // TODO wrap this method in AnalysisArgumentParser
     soosLogger.info("Parsing arguments");
-    return analysisArgumentParser.argumentParser.parse_args();
+    return analysisArgumentParser.parseArguments();
   }
 
   async runAnalysis(): Promise<void> {
     const scanType = ScanType.SAST;
+    const soosAnalysisService = AnalysisService.create(this.args.apiKey, this.args.apiURL);
 
     // TODO use hasMoreThanMaximumManifests
-    const { files } = await this.findSASTFiles(this.args.sourceCodePath);
-    if (files.length === 0) {
+    const { filePaths } = await soosAnalysisService.findAnalysisFiles(
+      this.args.sourceCodePath,
+      SOOS_SAST_CONSTANTS.FilePattern,
+      this.args.filesToExclude,
+      this.args.directoriesToExclude,
+      scanType,
+    );
+
+    if (filePaths.length === 0) {
       throw new Error("No SAST files found.");
     }
-
-    const soosAnalysisService = AnalysisService.create(this.args.apiKey, this.args.apiURL);
 
     let projectHash: string | undefined;
     let branchHash: string | undefined;
@@ -137,7 +131,10 @@ class SOOSSASTAnalysis {
 
       soosLogger.info("Uploading SAST Files");
 
-      const formData = await this.getSastFilesAsFormData(files);
+      const formData = await soosAnalysisService.getAnalysisFilesAsFormData(
+        filePaths,
+        this.args.sourceCodePath,
+      );
 
       await soosAnalysisService.analysisApiClient.uploadScanToolResult({
         clientId: this.args.clientId,
@@ -167,73 +164,6 @@ class SOOSSASTAnalysis {
       soosLogger.error(error);
       exit(1);
     }
-  }
-
-  // TODO move to api-client analysisService as a helper method
-  async getSastFilesAsFormData(sastFiles: IAnalysisFile[]): Promise<FormData> {
-    const formData = sastFiles.reduce((formDataAcc: FormData, sastFile, index) => {
-      const workingDirectory = this.args.sourceCodePath;
-      const fileParts = sastFile.path.replace(workingDirectory, "").split(Path.sep);
-      const parentFolder =
-        fileParts.length >= 2 ? fileParts.slice(0, fileParts.length - 1).join(Path.sep) : "";
-      const suffix = index > 0 ? index : "";
-      const fileReadStream = FileSystem.createReadStream(sastFile.path, {
-        encoding: SOOS_CONSTANTS.FileUploads.Encoding,
-      });
-      formDataAcc.append(`file${suffix}`, fileReadStream);
-      formDataAcc.append(`parentFolder${suffix}`, parentFolder);
-
-      return formDataAcc;
-    }, new FormData());
-
-    return formData;
-  }
-
-  // TODO move to api-client analysisService as a helper method - generic file
-  async findSASTFiles(
-    path: string,
-  ): Promise<{ files: Array<IAnalysisFile>; hasMoreThanMaximumManifests: boolean }> {
-    // TODO use filesToExclude/directoriesToExclude
-    soosLogger.info(`Searching for SAST files from ${path}...`);
-    const pattern = `${path}/${SOOS_SAST_CONSTANTS.FilePattern}`;
-    const files = Glob.sync(pattern, {
-      nocase: true,
-    });
-    const matchingFiles = files
-      .map((x) => Path.resolve(x))
-      .map((f) => {
-        return {
-          name: Path.basename(f),
-          path: f,
-        };
-      });
-
-    soosLogger.info(`${matchingFiles.length} files found matching pattern '${pattern}'.`);
-
-    const hasMoreThanMaximumManifests =
-      matchingFiles.length > SOOS_CONSTANTS.FileUploads.MaxManifests;
-    const filesToUpload = matchingFiles.slice(0, SOOS_CONSTANTS.FileUploads.MaxManifests);
-
-    if (hasMoreThanMaximumManifests) {
-      const filesToSkip = matchingFiles.slice(SOOS_CONSTANTS.FileUploads.MaxManifests);
-      const filesDetectedString = StringUtilities.pluralizeTemplate(
-        matchingFiles.length,
-        "file was",
-        "files were",
-      );
-      const filesSkippedString = StringUtilities.pluralizeTemplate(
-        filesToSkip.length,
-        "file",
-        "files",
-      );
-      soosLogger.info(
-        `The maximum number of SAST files per scan is ${SOOS_CONSTANTS.FileUploads.MaxManifests}. ${filesDetectedString} detected, and ${filesSkippedString} will be not be uploaded. \n`,
-        `The following manifests will not be included in the scan: \n`,
-        filesToSkip.map((file) => `  "${file.name}": "${file.path}"`).join("\n"),
-      );
-    }
-
-    return { files: filesToUpload, hasMoreThanMaximumManifests };
   }
 
   static async createAndRun(): Promise<void> {
