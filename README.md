@@ -26,23 +26,24 @@ Then run from the same terminal `node ./soos/node_modules/@soos-io/soos-sast/bin
 ## Parameters
 
 
-| Argument                | Default                                   | Description                                                                                                                          |
-| ----------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `--apiKey`              | `getEnvVariable(CONSTANTS.SOOS.API_KEY_ENV_VAR)` | SOOS API Key - get yours from [SOOS Integration](https://app.soos.io/integrate/sast).                                           |
-| `--apiURL`              | `"https://api.soos.io/api/"`              | SOOS API URL - Intended for internal use only, do not modify.                                                                       |
-| `--appVersion`          | N/A                                       | App Version - Intended for internal use only.                                                                                      |
-| `--branchName`          | `null`                                    | The name of the branch from the SCM System.                                                                                         |
-| `--branchURI`           | `null`                                    | The URI to the branch from the SCM System.                                                                                          |
-| `--buildURI`            | `null`                                    | URI to CI build info.                                                                                                               |
-| `--buildVersion`        | `null`                                    | Version of application build artifacts.                                                                                             |
-| `--clientId`            | `getEnvVariable(CONSTANTS.SOOS.CLIENT_ID_ENV_VAR)` | SOOS Client ID - get yours from [SOOS Integration](https://app.soos.io/integrate/sast).                                           |
-| `--commitHash`          | `null`                                    | The commit hash value from the SCM System.                                                                                         |
-| `--integrationName`     | N/A                                       | Integration Name - Intended for internal use only.                                                                                 |
-| `--integrationType`     | N/A                                       | Integration Type - Intended for internal use only.                                                                                 |
-| `--logLevel`            | `LogLevel.INFO`                          | Minimum level to show logs: PASS, IGNORE, INFO, WARN, or FAIL.                                                                      |
-| `--operatingEnvironment`| `null`                                    | Set Operating environment for information purposes only.                                                                           |
-| `--otherOptions`        | `null`                                    | Other Options to pass to syft.                                                                                                      |
-| `--projectName`         | N/A                                       | Project Name - this is what will be displayed in the SOOS app.                                                                     |
-| `--scriptVersion`       | N/A                                       | Script Version - Intended for internal use only.                                                                                   |
-| `--verbose`             | `false`                                   | Enable verbose logging.                                                                                                             |
-| `sastPath`              | N/A                                       | The SAST File to scan (*.sarif.json), it could be the location of the file or the file itself. When location is specified only the first file found will be scanned. |
+| Argument                 | Default                                   | Description                                                                                                                          |
+| ------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `--apiKey`               | `getEnvVariable(CONSTANTS.SOOS.API_KEY_ENV_VAR)` | SOOS API Key - get yours from [SOOS Integration](https://app.soos.io/integrate/sast).                                         |
+| `--apiURL`               | N/A                                       | SOOS API URL - Intended for internal use only, do not modify.                                                                        |
+| `--appVersion`           | N/A                                       | App Version - Intended for internal use only.                                                                                        |
+| `--branchName`           | `null`                                    | The name of the branch from the SCM System.                                                                                          |
+| `--branchURI`            | `null`                                    | The URI to the branch from the SCM System.                                                                                           |
+| `--buildURI`             | `null`                                    | URI to CI build info.                                                                                                                |
+| `--buildVersion`         | `null`                                    | Version of application build artifacts.                                                                                              |
+| `--clientId`             | `getEnvVariable(CONSTANTS.SOOS.CLIENT_ID_ENV_VAR)` | SOOS Client ID - get yours from [SOOS Integration](https://app.soos.io/integrate/sast).                                     |
+| `--commitHash`           | `null`                                    | The commit hash value from the SCM System.                                                                                           |
+| `--directoriesToExclude` | `**/node_modules/**, "**/bin/**", "**/obj/**", "**/lib/**` | Listing of directories or patterns to exclude from the search for manifest files. eg: **bin/start/**, **/start/**   |
+| `--filesToExclude`       | None                                      | Listing of files or patterns to exclude from the search for manifest files. eg: **/req**.txt/, **/requirements.txt                   |
+| `--integrationName`      | N/A                                       | Integration Name - Intended for internal use only.                                                                                   |
+| `--integrationType`      | N/A                                       | Integration Type - Intended for internal use only.                                                                                   |
+| `--logLevel`             | `INFO`                                    | Minimum level to show logs: PASS, IGNORE, INFO, WARN or FAIL. |
+| `--operatingEnvironment` | `null`                                    | Set Operating environment for information purposes only.                                                                             |
+| `--projectName`          | N/A                                       | Project Name - this is what will be displayed in the SOOS app.                                                                       |
+| `--scriptVersion`        | N/A                                       | Script Version - Intended for internal use only.                                                                                     |
+| `--sourceCodePath`       | `process.cwd()`                           | Root path to begin recursive search for Sarif files.                                                                                 |
+| `--verbose`              | `false`                                   | Enable verbose logging.                                                                                                              |
