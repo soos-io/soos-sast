@@ -1,6 +1,6 @@
 {
   "name": "@soos-io/soos-sast",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "SOOS Static Application Security Testing (SAST) scanning support.",
   "main": "bin/index.js",
   "scripts": {
