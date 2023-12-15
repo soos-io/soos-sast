@@ -28,14 +28,14 @@ Then run from the same terminal `node ./soos/node_modules/@soos-io/soos-sast/bin
 
 | Argument                 | Default                                   | Description                                                                                                                          |
 | ------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `--apiKey`               | `getEnvVariable(CONSTANTS.SOOS.API_KEY_ENV_VAR)` | SOOS API Key - get yours from [SOOS Integration](https://app.soos.io/integrate/sast).                                         |
+| `--apiKey`               | N/A | SOOS API Key - get yours from [SOOS Integration](https://app.soos.io/integrate/sast). Uses `SOOS_API_KEY` env value if present.                                            |
 | `--apiURL`               | N/A                                       | SOOS API URL - Intended for internal use only, do not modify.                                                                        |
 | `--appVersion`           | N/A                                       | App Version - Intended for internal use only.                                                                                        |
 | `--branchName`           | `null`                                    | The name of the branch from the SCM System.                                                                                          |
 | `--branchURI`            | `null`                                    | The URI to the branch from the SCM System.                                                                                           |
 | `--buildURI`             | `null`                                    | URI to CI build info.                                                                                                                |
 | `--buildVersion`         | `null`                                    | Version of application build artifacts.                                                                                              |
-| `--clientId`             | `getEnvVariable(CONSTANTS.SOOS.CLIENT_ID_ENV_VAR)` | SOOS Client ID - get yours from [SOOS Integration](https://app.soos.io/integrate/sast).                                     |
+| `--clientId`             | N/A | SOOS Client ID - get yours from [SOOS Integration](https://app.soos.io/integrate/sast). Uses `SOOS_API_CLIENT` env vaue if present.                                        |
 | `--commitHash`           | `null`                                    | The commit hash value from the SCM System.                                                                                           |
 | `--directoriesToExclude` | `**/node_modules/**, "**/bin/**", "**/obj/**", "**/lib/**` | Listing of directories or patterns to exclude from the search for manifest files. eg: **bin/start/**, **/start/**   |
 | `--filesToExclude`       | None                                      | Listing of files or patterns to exclude from the search for manifest files. eg: **/req**.txt/, **/requirements.txt                   |
