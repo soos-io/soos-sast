@@ -11,8 +11,8 @@ import {
 import {
   obfuscateProperties,
   ensureNonEmptyValue,
-  getExitCodeFromStatus,
   ensureEnumValue,
+  getAnalysisExitCode,
 } from "@soos-io/api-client/dist/utilities";
 import { exit } from "process";
 import { version } from "../package.json";
@@ -187,10 +187,12 @@ class SOOSSASTAnalysis {
         scanType,
       });
 
-      const exitCode = getExitCodeFromStatus(scanStatus);
-      if (exitCode > 0 && this.args.onFailure === OnFailure.Fail) {
-        soosLogger.warn("Failing the build.");
-      }
+      const exitCode = getAnalysisExitCode(
+        scanStatus,
+        this.args.integrationName,
+        this.args.onFailure,
+      );
+      soosLogger.debug(`Exiting with code ${exitCode}`);
       exit(exitCode);
     } catch (error) {
       if (projectHash && branchHash && analysisId)
