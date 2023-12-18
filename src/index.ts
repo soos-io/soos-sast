@@ -2,18 +2,11 @@
 import {
   IntegrationName,
   IntegrationType,
-  LogLevel,
-  OnFailure,
   ScanStatus,
   ScanType,
   soosLogger,
 } from "@soos-io/api-client";
-import {
-  obfuscateProperties,
-  ensureNonEmptyValue,
-  ensureEnumValue,
-  getAnalysisExitCode,
-} from "@soos-io/api-client/dist/utilities";
+import { obfuscateProperties, getAnalysisExitCode } from "@soos-io/api-client/dist/utilities";
 import { exit } from "process";
 import { version } from "../package.json";
 import AnalysisService from "@soos-io/api-client/dist/services/AnalysisService";
@@ -88,10 +81,6 @@ class SOOSSASTAnalysis {
       if (filePaths.length === 0) {
         throw new Error("No SAST files found.");
       }
-
-      soosLogger.info("Starting SOOS SAST Analysis");
-      soosLogger.info(`Creating scan for project '${this.args.projectName}'...`);
-      soosLogger.info(`Branch Name: ${this.args.branchName}`);
 
       const result = await soosAnalysisService.setupScan({
         clientId: this.args.clientId,
