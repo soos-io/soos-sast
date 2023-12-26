@@ -6,7 +6,10 @@ import {
   ScanType,
   soosLogger,
 } from "@soos-io/api-client";
-import { obfuscateProperties, getAnalysisExitCode } from "@soos-io/api-client/dist/utilities";
+import {
+  obfuscateProperties,
+  getAnalysisExitCodeWithMessage,
+} from "@soos-io/api-client/dist/utilities";
 import { exit } from "process";
 import { version } from "../package.json";
 import AnalysisService from "@soos-io/api-client/dist/services/AnalysisService";
@@ -149,13 +152,9 @@ class SOOSSASTAnalysis {
         scanType,
       });
 
-      const exitCode = getAnalysisExitCode(
-        scanStatus,
-        this.args.integrationName,
-        this.args.onFailure,
-      );
-      soosLogger.debug(`Exiting with code ${exitCode}`);
-      exit(exitCode);
+      const exitCodeWithMessage = getAnalysisExitCodeWithMessage(scanStatus, this.args.onFailure);
+      soosLogger.always(`${exitCodeWithMessage.message} - exit ${exitCodeWithMessage.exitCode}`);
+      exit(exitCodeWithMessage.exitCode);
     } catch (error) {
       if (projectHash && branchHash && analysisId)
         await soosAnalysisService.updateScanStatus({
@@ -169,6 +168,7 @@ class SOOSSASTAnalysis {
           scanStatusUrl,
         });
       soosLogger.error(error);
+      soosLogger.always(`${error} - exit 1`);
       exit(1);
     }
   }
@@ -193,6 +193,7 @@ class SOOSSASTAnalysis {
       await soosSASTAnalysis.runAnalysis();
     } catch (error) {
       soosLogger.error(`Error on createAndRun: ${error}`);
+      soosLogger.always(`Error on createAndRun: ${error} - exit 1`);
       exit(1);
     }
   }
