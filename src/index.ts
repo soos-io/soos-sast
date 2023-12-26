@@ -152,7 +152,11 @@ class SOOSSASTAnalysis {
         scanType,
       });
 
-      const exitCodeWithMessage = getAnalysisExitCodeWithMessage(scanStatus, this.args.onFailure);
+      const exitCodeWithMessage = getAnalysisExitCodeWithMessage(
+        scanStatus,
+        this.args.integrationName,
+        this.args.onFailure,
+      );
       soosLogger.always(`${exitCodeWithMessage.message} - exit ${exitCodeWithMessage.exitCode}`);
       exit(exitCodeWithMessage.exitCode);
     } catch (error) {
