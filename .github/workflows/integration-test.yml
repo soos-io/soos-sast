@@ -3,7 +3,7 @@ name: Integration Test on PR
 on:
   pull_request:
     branches:
-      - main # or any other branches you want to run tests on
+      - main
 
 jobs:
   test:
@@ -27,5 +27,5 @@ jobs:
       - name: Link
         run: npm link
 
-      - name: Execute Integration Test
-        run: soos-sast --apiURL="https://dev-api.soos.io/api/ --clientId=${{ secrets.SOOS_CLIENT_ID_DEV }} --apiKey=${{ secrets.SOOS_API_KEY_DEV }} --projectName="sast-integration-test"
+      - name: Run SOOS SAST
+        run: soos-sast --apiURL="https://dev-api.soos.io/api/" --clientId=${{ secrets.SOOS_CLIENT_ID_DEV }} --apiKey=${{ secrets.SOOS_API_KEY_DEV }} --projectName="sast-integration-test"
