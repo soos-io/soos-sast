@@ -1,0 +1,31 @@
+name: Integration Test on PR
+
+on:
+  pull_request:
+    branches:
+      - main # or any other branches you want to run tests on
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+      
+      - name: Link
+        run: npm run link
+
+      - name: Execute Integration Test
+        run: soos-sast --apiURL="https//dev-api.soos.io" --clientId=${{ secrets.SOOS_CLIENT_ID_DEV }} --apiKey=${{ secrets.SOOS_API_KEY_DEV }}
