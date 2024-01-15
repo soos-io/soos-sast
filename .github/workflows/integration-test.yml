@@ -28,4 +28,4 @@ jobs:
         run: npm link
 
       - name: Execute Integration Test
-        run: soos-sast --apiURL="https//dev-api.soos.io/api" --clientId=${{ secrets.SOOS_CLIENT_ID_DEV }} --apiKey=${{ secrets.SOOS_API_KEY_DEV }} --projectName="sast-integration-test"
+        run: soos-sast --apiURL="https://dev-api.soos.io/api/ --clientId=${{ secrets.SOOS_CLIENT_ID_DEV }} --apiKey=${{ secrets.SOOS_API_KEY_DEV }} --projectName="sast-integration-test"
