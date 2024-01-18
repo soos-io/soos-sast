@@ -14,6 +14,7 @@
     "format:fix": "prettier ./src --write",
     "typecheck": "tsc --noEmit",
     "check": "npm run format && npm run typecheck && npm outdated",
+    "link:soos-api-client": "npm link @soos-io/api-client && npm run build && npm link",
     "patch-api-client": "npm version patch --no-git-tag-version && npm run setup:clean && npm install @soos-io/api-client@latest --save-exact && npm install && npm run check"
   },
   "repository": {
