@@ -1,6 +1,6 @@
 {
   "name": "@soos-io/soos-sast",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "SOOS Static Application Security Testing (SAST) scanning support.",
   "main": "bin/index.js",
   "scripts": {
@@ -27,15 +27,15 @@
   },
   "homepage": "https://github.com/soos-io/soos-sast#readme",
   "dependencies": {
-    "@soos-io/api-client": "0.2.28",
+    "@soos-io/api-client": "0.2.29",
     "argparse": "^2.0.1",
     "glob": "^10.3.10",
     "tslib": "^2.6.2"
   },
   "devDependencies": {
     "@types/argparse": "^2.0.14",
-    "@types/node": "^20.10.5",
-    "prettier": "^3.1.1",
+    "@types/node": "^20.11.5",
+    "prettier": "^3.2.4",
     "typescript": "^5.3.3"
   },
   "bin": {
