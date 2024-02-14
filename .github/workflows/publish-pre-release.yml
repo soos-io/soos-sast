@@ -2,6 +2,10 @@ name: Publish Pre Release
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "The version to publish on the form of x.x.x-pre.x"
+        required: true
 
 jobs:
   build:
@@ -23,7 +27,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Set Git Config
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
       - name: Publish to npm
-        run: npm publish --tag next
+        run: npm version ${{ inputs.version }} && npm publish --tag next
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
