@@ -1,6 +1,6 @@
 {
   "name": "@soos-io/soos-sast",
-  "version": "0.1.25",
+  "version": "0.1.26",
   "description": "SOOS Static Application Security Testing (SAST) scanning support.",
   "main": "bin/index.js",
   "scripts": {
@@ -15,12 +15,25 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run format && npm run typecheck && npm outdated",
     "link:soos-api-client": "npm link @soos-io/api-client && npm run build && npm link",
-    "patch-api-client": "npm version patch --no-git-tag-version && npm run setup:clean && npm install @soos-io/api-client@latest --save-exact && npm install && npm run check"
+    "patch": "npm version patch --no-git-tag-version",
+    "patch-api-client": "npm run patch && npm run setup:clean && npm install @soos-io/api-client@latest --save-exact && npm install && npm run check"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/soos-io/soos-sast.git"
   },
+  "keywords": [
+    "@soos-io",
+    "sast",
+    "soos api",
+    "vulnerabilities",
+    "licenses",
+    "soos",
+    "open source",
+    "oss",
+    "sarif",
+    "static code analysis"
+  ],
   "author": "SOOS",
   "license": "MIT",
   "bugs": {
@@ -28,7 +41,7 @@
   },
   "homepage": "https://github.com/soos-io/soos-sast#readme",
   "dependencies": {
-    "@soos-io/api-client": "0.2.44",
+    "@soos-io/api-client": "0.2.47",
     "argparse": "^2.0.1",
     "glob": "^10.3.10",
     "tslib": "^2.6.2"
