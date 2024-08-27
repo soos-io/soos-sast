@@ -184,9 +184,8 @@ class SOOSSASTAnalysis {
     try {
       const args = this.parseArgs();
       soosLogger.setMinLogLevel(args.logLevel);
-      soosLogger.setVerbose(args.verbose);
       soosLogger.info("Configuration read");
-      soosLogger.verboseDebug(
+      soosLogger.debug(
         JSON.stringify(
           obfuscateProperties(args as unknown as Record<string, unknown>, ["apiKey"]),
           null,
