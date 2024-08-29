@@ -42,4 +42,3 @@ Then run from the same terminal `node ./soos/node_modules/@soos-io/soos-sast/bin
 | `--operatingEnvironment` |                                     | Set Operating environment for information purposes only.                                                                             |
 | `--projectName`          |                                     | Project Name - this is what will be displayed in the SOOS app.                                                                       |
 | `--sourceCodePath`       | `process.cwd()`                     | Root path to begin recursive search for Sarif files.                                                                                 |
-| `--verbose`              | `false`                             | Enable verbose logging.                                                                                                              |
