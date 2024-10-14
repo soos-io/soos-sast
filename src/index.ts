@@ -9,6 +9,7 @@ import {
 import {
   obfuscateProperties,
   getAnalysisExitCodeWithMessage,
+  isScanDone,
 } from "@soos-io/api-client/dist/utilities";
 import { exit } from "process";
 import { version } from "../package.json";
@@ -71,6 +72,7 @@ class SOOSSASTAnalysis {
     let branchHash: string | undefined;
     let analysisId: string | undefined;
     let scanStatusUrl: string | undefined;
+    let scanStatus: ScanStatus | undefined;
 
     try {
       const { filePaths, hasMoreThanMaximumFiles } = await soosAnalysisService.findAnalysisFiles(
@@ -147,7 +149,7 @@ class SOOSSASTAnalysis {
       soosLogger.logLineSeparator();
       soosLogger.info("Scan results uploaded successfully.");
 
-      const scanStatus = await soosAnalysisService.waitForScanToFinish({
+      scanStatus = await soosAnalysisService.waitForScanToFinish({
         scanStatusUrl,
         scanUrl: result.scanUrl,
         scanType,
@@ -161,7 +163,7 @@ class SOOSSASTAnalysis {
       soosLogger.always(`${exitCodeWithMessage.message} - exit ${exitCodeWithMessage.exitCode}`);
       exit(exitCodeWithMessage.exitCode);
     } catch (error) {
-      if (projectHash && branchHash && analysisId)
+      if (projectHash && branchHash && analysisId && (!scanStatus || !isScanDone(scanStatus)))
         await soosAnalysisService.updateScanStatus({
           analysisId,
           clientId: this.args.clientId,
