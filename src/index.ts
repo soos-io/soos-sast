@@ -23,6 +23,7 @@ interface SOOSSASTAnalysisArgs extends IBaseScanArguments {
   directoriesToExclude: Array<string>;
   filesToExclude: Array<string>;
   sourceCodePath: string;
+  outputDirectory: string;
 }
 
 class SOOSSASTAnalysis {
@@ -58,6 +59,12 @@ class SOOSSASTAnalysis {
       help: "The path to start searching for SAST files.",
       required: false,
       default: process.cwd(),
+    });
+
+    analysisArgumentParser.argumentParser.add_argument("--outputDirectory", {
+      help: "Absolute path where SOOS will write exported reports and SBOMs. eg Correct: /out/sbom/ | Incorrect: ./out/sbom/",
+      default: process.cwd(),
+      required: false,
     });
 
     soosLogger.info("Parsing arguments");
@@ -154,6 +161,26 @@ class SOOSSASTAnalysis {
         scanUrl: result.scanUrl,
         scanType,
       });
+
+      if (
+        isScanDone(scanStatus) &&
+        this.args.exportFormat !== undefined &&
+        this.args.exportFileType !== undefined
+      ) {
+        await soosAnalysisService.generateFormattedOutput({
+          clientId: this.args.clientId,
+          projectHash: result.projectHash,
+          projectName: this.args.projectName,
+          branchHash: result.branchHash,
+          analysisId: result.analysisId,
+          format: this.args.exportFormat,
+          fileType: this.args.exportFileType,
+          includeDependentProjects: false,
+          includeOriginalSbom: false,
+          includeVulnerabilities: false,
+          workingDirectory: this.args.outputDirectory,
+        });
+      }
 
       const exitCodeWithMessage = getAnalysisExitCodeWithMessage(
         scanStatus,
