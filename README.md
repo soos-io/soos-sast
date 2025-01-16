@@ -36,6 +36,8 @@ Then run from the same terminal `node ./soos/node_modules/@soos-io/soos-sast/bin
 | `--clientId`             |  | SOOS Client ID - get yours from [SOOS Integration](https://app.soos.io/integrate/sast). Uses `SOOS_API_CLIENT` env value if present.                                        |
 | `--commitHash`           |                                     | The commit hash value from the SCM System.                                                                                           |
 | `--directoriesToExclude` | `**/node_modules/**, "**/bin/**", "**/obj/**", "**/lib/**` | Listing of directories or patterns to exclude from the search for manifest files. eg: **bin/start/**, **/start/**   |
+| `--exportFormat`         |  | Write the scan result to this file format. Options: CsafVex, CycloneDx, Sarif, Spdx, SoosIssues, SoosLicenses, SoosPackages, SoosVulnerabilities |
+| `--exportFileType`       |  | Write the scan result to this file type (when used with exportFormat). Options: Csv, Html, Json, Text, Xml                                       |
 | `--filesToExclude`       |                                     | Listing of files or patterns to exclude from the search for manifest files. eg: **/req**.txt/, **/requirements.txt                   |
 | `--logLevel`             |                                     | Minimum level to show logs: DEBUG, INFO, WARN, FAIL, ERROR. |
 | `--onFailure`            | `continue_on_failure`               | Action to perform when the scan fails. Options: fail_the_build, continue_on_failure.                                                 |
