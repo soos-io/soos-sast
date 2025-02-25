@@ -130,12 +130,6 @@ class SOOSSASTAnalysis {
       analysisId = result.analysisId;
       scanStatusUrl = result.scanStatusUrl;
 
-      soosLogger.info(`Project Hash: ${projectHash}`);
-      soosLogger.info(`Branch Hash: ${branchHash}`);
-      soosLogger.info(`Scan Id: ${analysisId}`);
-      soosLogger.info("Scan created successfully.");
-      soosLogger.logLineSeparator();
-
       soosLogger.info("Uploading SAST Files");
 
       const formData = await soosAnalysisService.getAnalysisFilesAsFormData(
