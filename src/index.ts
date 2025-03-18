@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import {
+  AttributionFileTypeEnum,
+  AttributionFormatEnum,
   IntegrationName,
   IntegrationType,
   ScanStatus,
@@ -163,8 +165,8 @@ class SOOSSASTAnalysis {
 
       if (
         isScanDone(scanStatus) &&
-        this.args.exportFormat !== undefined &&
-        this.args.exportFileType !== undefined
+        this.args.exportFormat !== AttributionFormatEnum.Unknown &&
+        this.args.exportFileType !== AttributionFileTypeEnum.Unknown
       ) {
         await soosAnalysisService.generateFormattedOutput({
           clientId: this.args.clientId,
