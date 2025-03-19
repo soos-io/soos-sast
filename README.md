@@ -30,8 +30,8 @@ Then run from the same terminal `node ./soos/node_modules/@soos-io/soos-sast/bin
 ## Client Parameters
 
 
-| Argument                 | Default                                   | Description                                                                                                                          |
-| ------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Argument                 | Default                             | Description                                                                                                                          |
+| ------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `--apiKey`               |                                     | SOOS API Key - get yours from [SOOS Integration](https://app.soos.io/integrate/sast). Uses `SOOS_API_KEY` env value if present.      |
 | `--branchName`           |                                     | The name of the branch from the SCM System.                                                                                          |
 | `--branchURI`            |                                     | The URI to the branch from the SCM System.                                                                                           |
