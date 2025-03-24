@@ -212,7 +212,7 @@ class SOOSSASTAnalysis {
     try {
       const args = this.parseArgs();
       soosLogger.setMinLogLevel(args.logLevel);
-      soosLogger.info("Starting SOOS SAST Analysis");
+      soosLogger.always("Starting SOOS SAST Analysis");
       soosLogger.debug(
         JSON.stringify(
           obfuscateProperties(args as unknown as Record<string, unknown>, ["apiKey"]),
