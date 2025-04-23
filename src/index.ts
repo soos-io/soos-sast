@@ -149,7 +149,7 @@ class SOOSSASTAnalysis {
         exit(1);
       }
 
-      soosLogger.info("Uploading SAST Files");
+      soosLogger.info("Uploading SAST File(s)...");
       const formData = await soosAnalysisService.getAnalysisFilesAsFormData(
         filePaths,
         this.args.sourceCodePath,
