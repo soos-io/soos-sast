@@ -89,19 +89,6 @@ class SOOSSASTAnalysis {
     let scanStatus: ScanStatus | undefined;
 
     try {
-      const { filePaths, hasMoreThanMaximumFiles } = await soosAnalysisService.findAnalysisFiles(
-        scanType,
-        this.args.sourceCodePath,
-        SOOS_SAST_CONSTANTS.FilePattern,
-        this.args.filesToExclude,
-        this.args.directoriesToExclude,
-        SOOS_SAST_CONSTANTS.MaxFiles,
-      );
-
-      if (filePaths.length === 0) {
-        throw new Error("No SAST files found.");
-      }
-
       const result = await soosAnalysisService.setupScan({
         clientId: this.args.clientId,
         projectName: this.args.projectName,
@@ -137,13 +124,36 @@ class SOOSSASTAnalysis {
       analysisId = result.analysisId;
       scanStatusUrl = result.scanStatusUrl;
 
-      soosLogger.info("Uploading SAST Files");
+      const { filePaths, hasMoreThanMaximumFiles } = await soosAnalysisService.findAnalysisFiles(
+        scanType,
+        this.args.sourceCodePath,
+        SOOS_SAST_CONSTANTS.FilePattern,
+        this.args.filesToExclude,
+        this.args.directoriesToExclude,
+        SOOS_SAST_CONSTANTS.MaxFiles,
+      );
+      if (filePaths.length === 0) {
+        const noFilesMessage = `No SAST input files found. Please ensure you have generated Sarif JSON files before running soos-sast. They need to match the pattern ${SOOS_SAST_CONSTANTS.FilePattern}. See https://kb.soos.io/getting-started-with-sast-secrets for more information.`;
+        await soosAnalysisService.updateScanStatus({
+          analysisId,
+          clientId: this.args.clientId,
+          projectHash,
+          branchHash,
+          scanType,
+          status: ScanStatus.NoFiles,
+          message: noFilesMessage,
+          scanStatusUrl,
+        });
+        soosLogger.error(noFilesMessage);
+        soosLogger.always(`${noFilesMessage} - exit 1`);
+        exit(1);
+      }
 
+      soosLogger.info("Uploading SAST File(s)...");
       const formData = await soosAnalysisService.getAnalysisFilesAsFormData(
         filePaths,
         this.args.sourceCodePath,
       );
-
       await soosAnalysisService.analysisApiClient.uploadScanToolResult({
         clientId: this.args.clientId,
         projectHash,
