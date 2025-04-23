@@ -133,7 +133,7 @@ class SOOSSASTAnalysis {
         SOOS_SAST_CONSTANTS.MaxFiles,
       );
       if (filePaths.length === 0) {
-        const noFilesMessage = `No SAST input files found. Please ensure you have generated Sarif JSON files before running soos-sast. They need to match the pattern ${SOOS_SAST_CONSTANTS.FilePattern}`;
+        const noFilesMessage = `No SAST input files found. Please ensure you have generated Sarif JSON files before running soos-sast. They need to match the pattern ${SOOS_SAST_CONSTANTS.FilePattern}. See https://kb.soos.io/getting-started-with-sast-secrets for more information.`;
         await soosAnalysisService.updateScanStatus({
           analysisId,
           clientId: this.args.clientId,
@@ -150,12 +150,10 @@ class SOOSSASTAnalysis {
       }
 
       soosLogger.info("Uploading SAST Files");
-
       const formData = await soosAnalysisService.getAnalysisFilesAsFormData(
         filePaths,
         this.args.sourceCodePath,
       );
-
       await soosAnalysisService.analysisApiClient.uploadScanToolResult({
         clientId: this.args.clientId,
         projectHash,
