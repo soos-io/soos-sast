@@ -89,21 +89,6 @@ class SOOSSASTAnalysis {
     let scanStatus: ScanStatus | undefined;
 
     try {
-      const { filePaths, hasMoreThanMaximumFiles } = await soosAnalysisService.findAnalysisFiles(
-        scanType,
-        this.args.sourceCodePath,
-        SOOS_SAST_CONSTANTS.FilePattern,
-        this.args.filesToExclude,
-        this.args.directoriesToExclude,
-        SOOS_SAST_CONSTANTS.MaxFiles,
-      );
-
-      if (filePaths.length === 0) {
-        throw new Error(
-          `No SAST input files found. Please ensure you have generated Sarif JSON files before running soos-sast. They need to match the pattern ${SOOS_SAST_CONSTANTS.FilePattern}`,
-        );
-      }
-
       const result = await soosAnalysisService.setupScan({
         clientId: this.args.clientId,
         projectName: this.args.projectName,
@@ -138,6 +123,31 @@ class SOOSSASTAnalysis {
       branchHash = result.branchHash;
       analysisId = result.analysisId;
       scanStatusUrl = result.scanStatusUrl;
+
+      const { filePaths, hasMoreThanMaximumFiles } = await soosAnalysisService.findAnalysisFiles(
+        scanType,
+        this.args.sourceCodePath,
+        SOOS_SAST_CONSTANTS.FilePattern,
+        this.args.filesToExclude,
+        this.args.directoriesToExclude,
+        SOOS_SAST_CONSTANTS.MaxFiles,
+      );
+      if (filePaths.length === 0) {
+        const noFilesMessage = `No SAST input files found. Please ensure you have generated Sarif JSON files before running soos-sast. They need to match the pattern ${SOOS_SAST_CONSTANTS.FilePattern}`;
+        await soosAnalysisService.updateScanStatus({
+          analysisId,
+          clientId: this.args.clientId,
+          projectHash,
+          branchHash,
+          scanType,
+          status: ScanStatus.NoFiles,
+          message: noFilesMessage,
+          scanStatusUrl,
+        });
+        soosLogger.error(noFilesMessage);
+        soosLogger.always(`${noFilesMessage} - exit 1`);
+        exit(1);
+      }
 
       soosLogger.info("Uploading SAST Files");
 
