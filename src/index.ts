@@ -99,7 +99,9 @@ class SOOSSASTAnalysis {
       );
 
       if (filePaths.length === 0) {
-        throw new Error("No SAST files found.");
+        throw new Error(
+          `No SAST input files found. Please ensure you have generated Sarif JSON files before running soos-sast. They need to match the pattern ${SOOS_SAST_CONSTANTS.FilePattern}`,
+        );
       }
 
       const result = await soosAnalysisService.setupScan({
