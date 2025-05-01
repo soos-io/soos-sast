@@ -164,7 +164,6 @@ class SOOSSASTAnalysis {
         hasMoreThanMaximumFiles,
       });
 
-      soosLogger.logLineSeparator();
       soosLogger.info("Scan results uploaded successfully.");
 
       scanStatus = await soosAnalysisService.waitForScanToFinish({
@@ -230,7 +229,7 @@ class SOOSSASTAnalysis {
           2,
         ),
       );
-      soosLogger.logLineSeparator();
+
       const soosSASTAnalysis = new SOOSSASTAnalysis(args);
       await soosSASTAnalysis.runAnalysis();
     } catch (error) {
