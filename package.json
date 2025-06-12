@@ -57,11 +57,6 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.29.1"
   },
-  "overrides": {
-    "minimatch": {
-      "brace-expansion": "2.0.1"
-    }
-  },
   "bin": {
     "soos-sast": "bin/index.js"
   }
