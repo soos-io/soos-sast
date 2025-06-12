@@ -44,9 +44,8 @@
   },
   "homepage": "https://github.com/soos-io/soos-sast#readme",
   "dependencies": {
-    "@soos-io/api-client": "1.5.5",
-    "tslib": "^2.6.3",
-    "brace-expansion": "2.0.0"
+    "@soos-io/api-client": "1.5.6",
+    "tslib": "^2.6.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.24.0",
@@ -59,8 +58,9 @@
     "typescript-eslint": "^8.29.1"
   },
   "overrides": {
-    "glob": "^11.0.2",
-    "brace-expansion": "2.0.0"
+    "minimatch": {
+      "brace-expansion": "2.0.1"
+    }
   },
   "bin": {
     "soos-sast": "bin/index.js"
