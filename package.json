@@ -1,6 +1,6 @@
 {
   "name": "@soos-io/soos-sast",
-  "version": "1.1.11",
+  "version": "1.2.0",
   "description": "SOOS Static Application Security Testing (SAST) scanning support. Register for a free SOOS trial at https://app.soos.io/register",
   "main": "bin/index.js",
   "scripts": {
