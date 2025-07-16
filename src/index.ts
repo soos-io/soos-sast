@@ -153,6 +153,7 @@ class SOOSSASTAnalysis {
       const formData = await soosAnalysisService.getAnalysisFilesAsFormData(
         filePaths,
         this.args.sourceCodePath,
+        true,
       );
       await soosAnalysisService.analysisApiClient.uploadScanToolResult({
         clientId: this.args.clientId,
