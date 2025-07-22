@@ -1,6 +1,6 @@
 {
   "name": "@soos-io/soos-sast",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "SOOS Static Application Security Testing (SAST) scanning support. Register for a free SOOS trial at https://app.soos.io/register",
   "main": "bin/index.js",
   "scripts": {
@@ -44,7 +44,7 @@
   },
   "homepage": "https://github.com/soos-io/soos-sast#readme",
   "dependencies": {
-    "@soos-io/api-client": "1.7.4",
+    "@soos-io/api-client": "1.7.6",
     "tslib": "^2.6.3"
   },
   "devDependencies": {
