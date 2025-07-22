@@ -117,7 +117,6 @@ class SOOSSASTAnalysis {
         scriptVersion: this.args.scriptVersion,
         toolName: undefined,
         toolVersion: undefined,
-        shouldWarnOnNodeVersion: false,
       });
 
       projectHash = result.projectHash;
