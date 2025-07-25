@@ -48,6 +48,7 @@ class SOOSSASTAnalysis {
         argParser: (value: string) => {
           return value.split(",").map((pattern) => pattern.trim());
         },
+        defaultValue: [],
       },
     );
 
