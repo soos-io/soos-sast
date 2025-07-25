@@ -12,6 +12,8 @@ import {
   obfuscateProperties,
   getAnalysisExitCodeWithMessage,
   isScanDone,
+  obfuscateCommandLine,
+  reassembleCommandLine,
 } from "@soos-io/api-client/dist/utilities";
 import { exit } from "process";
 import { version } from "../package.json";
@@ -56,6 +58,7 @@ class SOOSSASTAnalysis {
         argParser: (value: string) => {
           return value.split(",").map((pattern) => pattern.trim());
         },
+        defaultValue: [],
       },
     );
 
@@ -93,18 +96,13 @@ class SOOSSASTAnalysis {
         clientId: this.args.clientId,
         projectName: this.args.projectName,
         commitHash: this.args.commitHash,
-        contributingDeveloperAudit:
-          !this.args.contributingDeveloperId ||
-          !this.args.contributingDeveloperSource ||
-          !this.args.contributingDeveloperSourceName
-            ? []
-            : [
-                {
-                  contributingDeveloperId: this.args.contributingDeveloperId,
-                  source: this.args.contributingDeveloperSource,
-                  sourceName: this.args.contributingDeveloperSourceName,
-                },
-              ],
+        contributingDeveloperAudit: [
+          {
+            contributingDeveloperId: this.args.contributingDeveloperId,
+            source: this.args.contributingDeveloperSource,
+            sourceName: this.args.contributingDeveloperSourceName,
+          },
+        ],
         branchName: this.args.branchName,
         buildVersion: this.args.buildVersion,
         buildUri: this.args.buildURI,
@@ -115,8 +113,13 @@ class SOOSSASTAnalysis {
         appVersion: this.args.appVersion,
         scanType,
         scriptVersion: this.args.scriptVersion,
-        toolName: undefined,
-        toolVersion: undefined,
+        commandLine:
+          process.argv.length > 2
+            ? obfuscateCommandLine(
+                reassembleCommandLine(process.argv.slice(2)),
+                SOOS_SAST_CONSTANTS.ObfuscatedArguments.map((a) => `--${a}`),
+              )
+            : null,
       });
 
       projectHash = result.projectHash;
