@@ -1,31 +1,21 @@
-name: Publish to npm
+name: Publish to NPM (Pre-release + Release)
 
 on:
+  # Manual trigger for pre-releases
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The version to publish (format: x.x.x-pre.x)"
+        required: true
+        type: string
+
+  # Automatic publish for tagged releases
   push:
     tags:
       - "v*"
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 24
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Publish to npm
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  publish:
+    uses: soos-io/.github/.github/workflows/npm-publish-workflow.yml@main
+    with:
+      version: ${{ inputs.version }}
