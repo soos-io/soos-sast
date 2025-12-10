@@ -79,6 +79,14 @@ class SOOSSASTAnalysis {
       },
     );
 
+    analysisArgumentParser.addArgument(
+      "sarifGenerator",
+      "The type of generator that was used to create the SARIF 2.1 files (eg when called from the soosio/sast Docker image).",
+      {
+        defaultValue: "File",
+      },
+    );
+
     return analysisArgumentParser.parseArguments();
   }
 
