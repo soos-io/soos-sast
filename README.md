@@ -23,7 +23,7 @@ run `npm i -g @soos-io/soos-sast@latest`
 Then Run `soos-sast` from any terminal and add the parameters you want.
 
 ### Locally
-run `npm install --prefix ./soos @soos-io/soos-sast`
+run `npm install --ignore-scripts --prefix ./soos @soos-io/soos-sast`
 
 Then run from the same terminal `node ./soos/node_modules/@soos-io/soos-sast/bin/index.js`
 
