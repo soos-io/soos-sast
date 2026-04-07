@@ -1,10 +1,10 @@
 {
   "name": "@soos-io/soos-sast",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "SOOS Static Application Security Testing (SAST) scanning support. Register for a free SOOS trial at https://app.soos.io/register",
   "main": "bin/index.js",
   "scripts": {
-    "setup:install": "npm install",
+    "setup:install": "npm install --ignore-scripts",
     "setup:clean-install": "npm ci",
     "setup:update": "npx npm-check -u",
     "setup:clean": "npx rimraf node_modules && npx rimraf package-lock.json",
@@ -18,7 +18,7 @@
     "check": "npm run format && npm run lint && npm run typecheck && (npm outdated || exit 0)",
     "link:soos-api-client": "npm link @soos-io/api-client && npm run build && npm link",
     "patch": "npm version patch --no-git-tag-version",
-    "patch-api-client": "npm run patch && npm run setup:clean && npm install @soos-io/api-client@latest --save-exact && npm install && npm run check",
+    "patch-api-client": "npm run patch && npm run setup:clean && npm install @soos-io/api-client@latest --save-exact && npm install --ignore-scripts && npm run check",
     "knip": "knip"
   },
   "repository": {
@@ -44,20 +44,20 @@
   },
   "homepage": "https://github.com/soos-io/soos-sast#readme",
   "dependencies": {
-    "@soos-io/api-client": "1.10.4",
+    "@soos-io/api-client": "1.10.5",
     "tslib": "^2.6.3"
   },
   "overrides": {
     "minimatch": "^10.2.4"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.3",
+    "@eslint/js": "^10.0.1",
     "@types/node": "^24.11.0",
-    "eslint": "^9.39.3",
+    "eslint": "^10.2.0",
     "globals": "^17.4.0",
-    "knip": "^5.73.1",
+    "knip": "^6.3.0",
     "prettier": "^3.3.3",
-    "typescript": "^5.8.3",
+    "typescript": "^6.0.2",
     "typescript-eslint": "^8.56.1"
   },
   "bin": {
