@@ -19,3 +19,4 @@ jobs:
     uses: soos-io/.github/.github/workflows/npm-publish-workflow.yml@main
     with:
       version: ${{ inputs.version }}
+      shrinkwrap: true
